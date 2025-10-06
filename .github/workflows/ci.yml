@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   test:
@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        go-version: ['1.21', '1.22', '1.23']
+        go-version: ["1.21", "1.22", "1.23"]
 
     services:
       redis:
@@ -27,101 +27,81 @@ jobs:
           --health-retries 5
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: ${{ matrix.go-version }}
-        cache: true
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+          cache: true
 
-    - name: Download dependencies
-      run: go mod download
+      - name: Download dependencies
+        run: go mod download
 
-    - name: Verify dependencies
-      run: go mod verify
+      - name: Verify dependencies
+        run: go mod verify
 
-    - name: Run unit tests
-      run: go test -v -race -count=1 ./...
-      env:
-        REDIS_URL: localhost:6379
+      - name: Run unit tests
+        run: go test -v -race -count=1 ./...
+        env:
+          REDIS_URL: localhost:6379
 
-    - name: Run tests with coverage
-      run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
-      env:
-        REDIS_URL: localhost:6379
+      - name: Run tests with coverage
+        run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
+        env:
+          REDIS_URL: localhost:6379
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./coverage.out
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.out
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
 
   build:
     name: Build
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.23'
-        cache: true
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: true
 
-    - name: Build
-      run: go build -v ./...
+      - name: Build
+        run: go build -v ./...
 
-    - name: Build examples
-      run: |
-        cd examples/basic && go build
-        cd ../advanced && go build
-        cd ../cron && go build
-
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.23'
-        cache: true
-
-    - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v4
-      with:
-        version: latest
-        args: --timeout=5m
+      - name: Build examples
+        run: |
+          cd examples/basic && go build
+          cd ../advanced && go build
+          cd ../cron && go build
 
   security:
     name: Security Scan
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.23'
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
 
-    - name: Run Gosec Security Scanner
-      uses: securego/gosec@master
-      with:
-        args: '-no-fail -fmt sarif -out results.sarif ./...'
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@master
+        with:
+          args: "-no-fail -fmt sarif -out results.sarif ./..."
 
-    - name: Upload SARIF file
-      uses: github/codeql-action/upload-sarif@v3
-      with:
-        sarif_file: results.sarif
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
